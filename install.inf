@@ -1,0 +1,11 @@
+[info]
+title=LexerInspector
+desc=Some description
+type=cudatext-plugin
+subdir=cuda_lexer_inspector
+homepage=
+
+[item1]
+section=events
+events=on_change_slow,on_hotspot,on_open
+
