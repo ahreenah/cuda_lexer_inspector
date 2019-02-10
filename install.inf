@@ -7,5 +7,14 @@ homepage=
 
 [item1]
 section=events
-events=on_change_slow,on_hotspot,on_open
+events=on_change_slow,on_hotspot,on_open,on_mouse_stop
 
+[item3]
+section=commands
+caption=Lexer Inspector/Hide Panel
+method=hide_panel
+
+[item4]
+section=commands
+caption=Lexer Inspector/Show Panel
+method=show_panel

@@ -14,6 +14,8 @@ HOTSPOT_TAG=643
 class Command:
     
     def __init__(self):
+        self.hidden=False
+        self.first=True
         self.shown=False
         ed.hotspots(HOTSPOT_ADD,
                          tag=HOTSPOT_TAG,
@@ -39,34 +41,65 @@ class Command:
                          pos=(i['x1'],i['y1'],i['x2'],i['y2']))   
     
     def on_change_slow(self, ed_self):
-        ed_self.hotspots(HOTSPOT_DELETE_ALL)
-        for i in ed_self.get_token(TOKEN_LIST) :
-            ed_self.hotspots(HOTSPOT_ADD,
-                         tag=HOTSPOT_TAG,
-                         tag_str=i['str'],
-                         pos=(i['x1'],i['y1'],i['x2'],i['y2']))
-        
-    def on_hotspot(self, ed_self, entered, hotspot_index):
-        hotspot=ed_self.hotspots(HOTSPOT_GET_LIST)[hotspot_index]
-        token=ed.get_token(TOKEN_LIST)[hotspot_index]
+        try:
+            ed_self.hotspots(HOTSPOT_DELETE_ALL)
+            for i in ed_self.get_token(TOKEN_LIST):
+                ed_self.hotspots(HOTSPOT_ADD,
+                             tag=HOTSPOT_TAG,
+                             tag_str=i['str'],
+                             pos=(i['x1'],i['y1'],i['x2'],i['y2']))
+        except:
+            pass
+    def on_mouse_stop(self, ed_self,x,y):
+        if self.hidden:
+            return
         if self.shown:
             dlg_proc(self.h_tooltip,DLG_HIDE)
-        self.shown=True
+        cx,cy=(ed_self.convert(CONVERT_PIXELS_TO_CARET,x,y))
+        ind = 0
+        for i in ed_self.hotspots(HOTSPOT_GET_LIST):
+            if i['pos'][0]<=cx<=i['pos'][2] and i['pos'][1]<=cy<=i['pos'][3]:
+                print(i)
+                break
+            ind += 1
+        token=ed.get_token(TOKEN_LIST)[ind]
+        print('token: '+str(token))
+        strres=''
+        if token['y2']==token['y1']:
+            pos='pos: ('+str(token['x1'])+','+str(token['y1'])+') len: '+str(token['x2']-token['x1'])
+        else:
+            pos='pos: ('+str(token['x1'])+','+str(token['y1'])+'):('+str(token['x2'])+','+str(token['y2'])+')'
+        for i in token:
+            strres+=str(i)+': '+str(token[i]).split('\n')[0]+(' ... 'if'\n'in str(token[i]) else'')+'; '
+        strres+=pos
+        print('strres: '+strres)
         self.h_tooltip = dlg_proc(0, DLG_CREATE)
         dlg_proc(self.h_tooltip,DLG_PROP_SET,prop={
-          'x':hotspot['pos'][0],
-          'y':hotspot['pos'][1],
-          'h':100,
+          'h':18,
         })
         label = dlg_proc(self.h_tooltip,DLG_CTL_ADD,'label')
-        strres=''
-        for i in token:
-            strres+=str(i)+': '+str(token[i])+'\n'
         dlg_proc(self.h_tooltip, DLG_CTL_PROP_SET, index=label, prop={
           'x':3,
-          'y':3, 
-          'cap':strres
-        }) 
+          'y':3,
+          'color_font':2,  
+          'cap':strres,
+        })
         dlg_proc(self.h_tooltip,DLG_DOCK,index=0,prop='B')
         dlg_proc(self.h_tooltip,DLG_SHOW_NONMODAL)
-        pass
+        self.shown=True
+        print('shown')
+        
+    def on_hotspot(self, ed_self, entered, hotspot_index):
+        return
+        
+    def hide_panel(self):
+        self.hidden=True
+        dlg_proc(self.h_tooltip,DLG_PROP_SET,prop={
+          'h':0,
+        })
+    
+    def show_panel(self):
+        self.hidden=False
+        dlg_proc(self.h_tooltip,DLG_PROP_SET,prop={
+          'h':18,
+        })
